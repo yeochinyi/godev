@@ -18,7 +18,7 @@ import (
 	"os"
 )
 
-func main() {
+func main345() {
 	//var _ = foo
 	//fmt.Printf("Hello, world.  Sqrt(2) = %v\n", newmath.Sqrt(2))
 	//fmt.Printf("Hello, world.")
