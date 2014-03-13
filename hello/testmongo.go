@@ -20,7 +20,7 @@ type Phone struct {
 	Snippet  string
 }
 
-func main() {
+func main344() {
 	session, err := mgo.Dial("localhost")
 	if err != nil {
 		panic(err)

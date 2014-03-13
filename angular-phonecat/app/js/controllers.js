@@ -4,14 +4,19 @@
 
 var phonecatControllers = angular.module('phonecatControllers', []);
 
-/*
+
 phonecatControllers.controller('PhoneListCtrl', ['$scope', 'Phone',
   function($scope, Phone) {
-    $scope.phones = Phone.query();
+    var q = Phone.query();
+    //alert(JSON.stringify(q));
+   //alert(q);
+    //$scope.phones =  angular.fromJson(q);
+    $scope.phones =  angular.fromJson(q);
     $scope.orderProp = 'age';
   }]);
-*/
 
+
+/*
 phonecatApp.controller('PhoneListCtrl', function ($scope, $http) {
   $http.get('phones/phones.json').
   //$http.get('test/test.json').
@@ -26,6 +31,7 @@ phonecatApp.controller('PhoneListCtrl', function ($scope, $http) {
  
   $scope.orderProp = 'age';
 });
+*/
 
 phonecatControllers.controller('PhoneDetailCtrl', ['$scope', '$routeParams', 'Phone',
   function($scope, $routeParams, Phone) {
