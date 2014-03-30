@@ -37,8 +37,8 @@ type PhoneService struct {
 	//End-Point level configs: Field names must be the same as the corresponding method names,
 	// but not-exported (starts with lowercase)
 
-	listPhones gorest.EndPoint `method:"GET" path:"/phones/" output:"[]map[string]interface{}"`
-	getPhone   gorest.EndPoint `method:"GET" path:"/{Id:string}" output:"map[string]interface{}"`
+	listPhones gorest.EndPoint `method:"GET" path:"/phones/" output:"[]map[string]interface {}"`
+	getPhone   gorest.EndPoint `method:"GET" path:"/{Id:string}" output:"map[string]interface {}"`
 
 	//addItem     gorest.EndPoint `method:"POST" path:"/items/" postdata:"Item"`
 
@@ -76,9 +76,21 @@ var phonesCache map[string]map[string]interface{}
 
 func main() {
 
-	session, _ = mgo.Dial("localhost")
+	session, err := mgo.Dial("test:test@localhost")
+
+	if err != nil {
+		panic(err)
+	}
+
 	db = session.DB("test")
 	defer session.Close()
+
+	colls, _ := db.CollectionNames()
+	for i, c := range colls {
+		fmt.Printf("\n%v = %v", i, c)
+	}
+
+	//db.
 
 	start()
 	//importMongo()
@@ -131,12 +143,20 @@ func importMongo() {
 
 func findAllPhones() map[string]map[string]interface{} {
 	//var result []Phone
+
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Recovered in f", r)
+		}
+	}()
+
 	mapOfMap := make(map[string]map[string]interface{})
 	var result []map[string]interface{}
 
 	err := db.C("phonesV2").Find(nil).All(&result)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		fmt.Printf("\nError in get phones due to %v", err)
 	}
 
 	for _, m := range result {

@@ -13,6 +13,19 @@ phonecatControllers.controller('PhoneListCtrl', ['$scope', 'Phone',
     //$scope.phones =  angular.fromJson(q);
     $scope.phones =  angular.fromJson(q);
     $scope.orderProp = 'age';
+
+	
+	$scope.gridOptions = { 
+		data:  'phones',
+		enablePinning: true,
+        enableRowSelection: true,
+        enableCellEdit: true,
+		columnDefs: [{field:'id', displayName:'ID'}, {field:'name', displayName:'Name'}, {field:'age', displayName:'Age', groupable:true}],
+		showGroupPanel: true,
+		//filterOptions : {filterText: 'Test', useExternalFilter: false},
+		showFilter : true,
+		//jqueryUIDraggable: true,
+	};
   }]);
 
 
