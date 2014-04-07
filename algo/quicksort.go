@@ -1,9 +1,9 @@
-package main
+package algo
 
 import (
-	"fmt"
+	//"fmt"
 	"math/rand"
-	"time"
+	//"time"
 	//"sync"
 	//"godev/newmath"
 	//"github.com/yeochinyi/newmath"
@@ -22,6 +22,7 @@ const (
 	last   = iota
 )
 
+/*
 func main() {
 	start := time.Now()
 	a := []int{5, 4, 3, 2, 1, 2, 3, 4, 5}
@@ -35,14 +36,14 @@ func main() {
 	fmt.Printf("Took %s", elapsed)
 	//time.Sleep(3 * time.Second)
 
-}
+}*/
 
-func sort(a []int, idx int) []int {
+func QuickSort(a []int, idx int) []int {
 	//return recurEasy(a, idx)
-	return recurSmall(a, idx, nil)
+	return qRecurSmall(a, idx, nil)
 }
 
-func getIndex(a []int, idx int) int {
+func qGetIndex(a []int, idx int) int {
 	switch idx {
 	case first:
 		return 1
@@ -54,11 +55,11 @@ func getIndex(a []int, idx int) int {
 	return 0
 }
 
-func recurEasy(a []int, idx int) []int {
+func qRecurEasy(a []int, idx int) []int {
 	if len(a) == 0 {
 		return a
 	}
-	index := getIndex(a, idx)
+	index := qGetIndex(a, idx)
 
 	var less, more []int
 	for i, v := range a {
@@ -70,13 +71,13 @@ func recurEasy(a []int, idx int) []int {
 			more = append(more, v)
 		}
 	}
-	less = recurEasy(less, idx)
-	more = recurEasy(more, idx)
+	less = qRecurEasy(less, idx)
+	more = qRecurEasy(more, idx)
 
 	return append(append(less, a[index]), more...)
 }
 
-func recurSmall(a []int, idx int, ch chan int) []int {
+func qRecurSmall(a []int, idx int, ch chan int) []int {
 	defer func() {
 		if ch != nil {
 			ch <- 1
@@ -87,7 +88,7 @@ func recurSmall(a []int, idx int, ch chan int) []int {
 	if len(a) < 2 {
 		return a
 	}
-	index := getIndex(a, idx)
+	index := qGetIndex(a, idx)
 	left, right := 0, len(a)-1
 	a[index], a[right] = a[right], a[index]
 	for i := range a {
@@ -99,10 +100,10 @@ func recurSmall(a []int, idx int, ch chan int) []int {
 	a[left], a[right] = a[right], a[left]
 	//var wg sync.WaitGroup
 	ch1 := make(chan int)
-	go recurSmall(a[:left], idx, ch1)
+	go qRecurSmall(a[:left], idx, ch1)
 	//go recurSmall(a[left+1:], idx, ch1)
 	//recurSmall(a[:left], idx, nil)
-	recurSmall(a[left+1:], idx, nil)
+	qRecurSmall(a[left+1:], idx, nil)
 	//<-ch1
 	<-ch1
 	close(ch1)

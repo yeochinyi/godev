@@ -1,27 +1,29 @@
-package main
+package algo
 
 import (
-	"fmt"
-	//"math/rand"
-	"time"
-	//"sync"
-	//"godev/newmath"
-	//"github.com/yeochinyi/newmath"
-	// "net/http/httputil"
-	//"bufio"
-	//"net"
-	//"io/ioutil"
-	//"net/http"
-	//"net/url"
-	//"os"
+//"fmt"
+//"math/rand"
+//"time"
+//"sync"
+//"godev/newmath"
+//"github.com/yeochinyi/newmath"
+// "net/http/httputil"
+//"bufio"
+//"net"
+//"io/ioutil"
+//"net/http"
+//"net/url"
+//"os"
 )
 
+/*
 const (
 	first  = iota
 	random = iota
 	last   = iota
-)
+)*/
 
+/*
 func main() {
 	start := time.Now()
 	a := []int{5, 4, 3, 2, 1, 2, 3, 4, 5}
@@ -35,14 +37,14 @@ func main() {
 	fmt.Printf("Took %s", elapsed)
 	//time.Sleep(3 * time.Second)
 
-}
+}*/
 
-func sort(a []int, idx int) []int {
-	return recurEasy(a)
+func MergeSort(a []int, idx int) []int {
+	return mergerRecurEasy(a)
 	//return recurSmall(a, idx, nil)
 }
 
-func recurEasy(a []int) []int {
+func mergerRecurEasy(a []int) []int {
 	//fmt.Printf("%d:%d\n", a, len(a))
 	if len(a) < 2 {
 		//fmt.Printf("Return %d\n", a)
@@ -50,8 +52,8 @@ func recurEasy(a []int) []int {
 	}
 
 	half := len(a) / 2
-	t1 := recurEasy(a[:half])
-	t2 := recurEasy(a[half:])
+	t1 := mergerRecurEasy(a[:half])
+	t2 := mergerRecurEasy(a[half:])
 
 	var ret []int
 

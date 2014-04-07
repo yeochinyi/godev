@@ -28,6 +28,9 @@ phonecatServices
         authorize: function(accessLevel, role) {
             if(role === undefined)
                 role = currentUser.role;
+				
+			if(accessLevel === undefined)
+				return false;
 
             return accessLevel.bitMask & role.bitMask;
         },

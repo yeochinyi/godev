@@ -37,7 +37,7 @@ phonecatApp.config(['$routeProvider', '$locationProvider', '$httpProvider',
       otherwise({
         redirectTo: '/phones'
       });
-	
+	/*
     $locationProvider.html5Mode(true);
 
     var interceptor = ['$location', '$q', function($location, $q) {
@@ -62,18 +62,19 @@ phonecatApp.config(['$routeProvider', '$locationProvider', '$httpProvider',
     }];
 
     $httpProvider.responseInterceptors.push(interceptor);
-	
+	*/
 	
   }]);
 
-
+/*
 phonecatApp.run(['$rootScope', '$location', 'Auth', function ($rootScope, $location, Auth) {
 
     $rootScope.$on("$routeChangeStart", function (event, next, current) {
         if (!Auth.authorize(next.access)) {
-            if(Auth.isLoggedIn()) $location.path('/');
-            else                  $location.path('/login');
+            //if(Auth.isLoggedIn()) 
+			$location.path('/');
+            //else                  $location.path('/login');
         }
     });
 
-}]);
+}]);*/

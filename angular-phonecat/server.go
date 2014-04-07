@@ -219,14 +219,24 @@ func start() {
 		listHandler(w, r)
 	})*/
 	//http.Handle("/html/", http.FileServer(d))
+
+	/*http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("\n redirect from %v", r.URL.Path)
+		http.Redirect(w, r, "/html/index.html", http.StatusFound)
+
+	})*/
+
 	http.HandleFunc("/html/", func(w http.ResponseWriter, r *http.Request) {
 		fs := http.FileServer(http.Dir("app"))
 		r.URL.Path = strings.Join(strings.Split(r.URL.Path, "/")[2:], "/")
-		//fmt.Printf("\nr.URL.Path=%v\n", r.URL.Path)
+		fmt.Printf("\nr.URL.Path=%v\n", r.URL.Path)
 		fs.ServeHTTP(w, r)
 	})
-	http.Handle("/", gorest.Handle())
-	http.ListenAndServe(Address, nil)
+	http.Handle("/rest/", gorest.Handle())
+
+	//http.RedirectHandler("/html/index.html", http.StatusFound)
+
+	fmt.Printf("Status is %v", http.ListenAndServe(Address, nil))
 }
 
 /*
