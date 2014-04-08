@@ -17,44 +17,51 @@ import (
 )
 
 const (
-	first1 = iota
-	random2
+	lessThan = iota
+	equalTo
+	greaterThan
 )
 
+type Comparable interface {
+	Compare(c Comparable) int
+}
+
 type Node struct {
-	data int32
+	data Comparable
 	link [2]*Node
 }
 
-func Insert(root *Node, data int32) *Node {
+func InsertRecur(root *Node, data Comparable) *Node {
 	if root == nil {
 		root = &Node{data: data}
-	} else if root.data == data {
+	} else if root.data.Compare(data) == equalTo {
 		return root
 	} else {
 		dir := 0
-		if root.data > data {
+		if root.data.Compare(data) == greaterThan {
 			dir = 1
 		}
-		root.link[dir] = Insert(root.link[dir], data)
+		root.link[dir] = InsertRecur(root.link[dir], data)
 	}
 	return root
 }
 
-func FindRecur(root *Node, data int32) bool {
+/*
+func FindRecur(root *Node, data Comparable) bool {
 	if root == nil {
 		return false
-	} else if root.data == data {
+	} else if root.data.Compare(data) == equalTo {
 		return true
 	} else {
 		dir := 0
-		if root.data > data {
+		if root.data.Compare(data) == greaterThan {
 			dir = 1
 		}
 		return FindRecur(root.link[dir], data)
 	}
-}
+}*/
 
+/*
 func FindLoop(root *Node, data int32) bool {
 
 	for root != nil {
@@ -70,3 +77,4 @@ func FindLoop(root *Node, data int32) bool {
 	}
 	return false
 }
+*/
