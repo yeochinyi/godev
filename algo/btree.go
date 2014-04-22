@@ -1,7 +1,7 @@
 package algo
 
 import (
-//"fmt"
+	"fmt"
 )
 
 const (
@@ -21,26 +21,76 @@ type Comparable interface {
 }
 
 type Node struct {
-	parent *Node
-	dir    int
+	parent *Node //For easy recur to return parent when found
+	dir    int   //left or right
 	data   Comparable
 	links  [2]*Node
 }
 
-//func Traverse()
+var setRecursive bool
 
-func Insert(data Comparable, root *Node) (ok bool, n *Node) {
+func Traverse(node *Node) {
+	if node == nil {
+		return
+	}
+
+	fmt.Printf(" %v ", node.data)
+	Traverse(node.links[left])
+
+	Traverse(node.links[right])
+
+	//fmt.Println("")
+}
+
+func traverseRecur(node *Node, dir int) {
+	if node == nil {
+		return
+	}
+	fmt.Printf(" %v ", node.data)
+	Traverse(node.links[left])
+	Traverse(node.links[right])
+
+	fmt.Println("")
+}
+
+func Insert(data Comparable, root *Node) (ok bool, newNode *Node) {
 	if root == nil {
 		return true, &Node{data: data}
 	}
-	return insertRecur(data, root, none)
+	if setRecursive {
+		return insertRecur(data, root, none)
+	} else {
+		return insertLoop(data, root)
+	}
+
 }
 
-func insertRecur(data Comparable, parent *Node, dir int) (bool, *Node) {
-	if dir != none && parent.links[dir] == nil {
-		parent.links[dir] = &Node{parent: parent, dir: dir, data: data}
-		return true, parent.links[dir]
+func insertLoop(data Comparable, parent *Node) (ok bool, newNode *Node) {
+
+	curr := parent
+	var dir int
+
+	for curr != nil {
+		//fmt.Printf("\n data is %v", curr.data)
+		switch curr.data.Compare(data) {
+		case equalTo:
+			return false, nil
+		case greaterThan:
+			dir = right
+		case lessThan:
+			dir = left
+		}
+		parent = curr
+		curr = curr.links[dir]
 	}
+
+	parent.links[dir] = &Node{parent: parent, dir: dir, data: data}
+
+	return true, parent.links[dir]
+}
+
+//Recurse until empty spot or return equalTo found
+func insertRecur(data Comparable, parent *Node, dir int) (ok bool, newNode *Node) {
 	switch parent.data.Compare(data) {
 	case equalTo:
 		return false, parent
@@ -49,27 +99,56 @@ func insertRecur(data Comparable, parent *Node, dir int) (bool, *Node) {
 	case lessThan:
 		dir = left
 	}
-	return insertRecur(data, parent, dir)
+
+	if parent.links[dir] == nil { //Found insertion point
+		parent.links[dir] = &Node{parent: parent, dir: dir, data: data}
+		return true, parent.links[dir]
+	}
+
+	return insertRecur(data, parent.links[dir], dir)
 }
 
-func Find(data Comparable, root *Node) (ok bool, n *Node) {
-	return findRecur(data, root)
+func Find(data Comparable, root *Node) (ok bool, theOne *Node) {
+	if setRecursive {
+		return findRecur(data, root)
+	} else {
+		//fmt.Println("Using findLoop.")
+		return findLoop(data, root)
+	}
 }
 
-func findRecur(data Comparable, node *Node) (bool, *Node) {
-	if node == nil {
+func findLoop(data Comparable, parent *Node) (ok bool, theOne *Node) {
+	curr := parent
+	for curr != nil {
+		//fmt.Printf("\n data is %v", curr.data)
+		var dir int
+		switch curr.data.Compare(data) {
+		case equalTo:
+			return true, curr
+		case greaterThan:
+			dir = right
+		case lessThan:
+			dir = left
+		}
+		curr = curr.links[dir]
+	}
+	return false, nil
+}
+
+func findRecur(data Comparable, parent *Node) (ok bool, theOne *Node) {
+	if parent == nil {
 		return false, nil
 	}
 	var dir int
-	switch node.data.Compare(data) {
+	switch parent.data.Compare(data) {
 	case equalTo:
-		return true, node
+		return true, parent
 	case greaterThan:
 		dir = right
 	case lessThan:
 		dir = left
 	}
-	return findRecur(data, node.links[dir])
+	return findRecur(data, parent.links[dir])
 }
 
 func GetNumChild(node *Node) int {
@@ -98,7 +177,18 @@ func Delete(data Comparable, root *Node) (ok bool) {
 		}
 		node.parent.links[node.dir] = node.links[nonEmpty]
 		node.links[nonEmpty] = nil
-	case 2:
+	case 2: //traverse 1 left and right all e way
+		curr := node.links[left]
+		for ; curr.links[right] != nil; curr = curr.links[right] {
+		}
+		node.data = curr.data //swap data
+		//if last node has left link.. reconnect to parent
+		if curr.links[left] != nil {
+			curr.parent.links[right] = curr.links[left]
+		} else {
+			//nullifed parent link
+			curr.parent.links[left] = nil
+		}
 	}
 
 	return true
