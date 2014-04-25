@@ -17,20 +17,21 @@ func (c T) Compare(o Comparable) int {
 }
 
 func TestAlgo(t *testing.T) {
-	_, root := Insert(T(5), nil)
+	_, root := Insert(T(5), nil, false)
 
-	setRecursive = false
+	setRecursive = true
 
-	//fmt.Printf("\nroot %v\n", root)
 	for _, x := range []int{1, 4, 2, 6, 15, 9, 17, 12, 20, 10} {
-		Insert(T(x), root)
+		//PrintTree(root)
+		_, root = Insert(T(x), root, true)
+		//Insert(T(x), root, false)
 	}
 
-	Traverse(root)
+	PrintTree(root)
 
 	fmt.Println("\nTest Find 20.")
 	r, n := Find(T(20), root)
-	if !r || n.data != T(20) {
+	if !r || n[0].Node.data != T(20) {
 		t.FailNow()
 	}
 

@@ -16,48 +16,177 @@ const (
 	none
 )
 
+const (
+	preOrder = iota
+	inOrder
+	postOrder
+)
+
 type Comparable interface {
 	Compare(c Comparable) int
 }
 
 type Node struct {
-	parent *Node //For easy recur to return parent when found
-	dir    int   //left or right
-	data   Comparable
-	links  [2]*Node
+	data  Comparable
+	links [2]*Node
+}
+
+type DirEntry struct {
+	*Node
+	dir int
+}
+
+type LevelDirEntry struct {
+	*Node
+	dir   int
+	level int
 }
 
 var setRecursive bool
 
-func Traverse(node *Node) {
-	if node == nil {
-		return
+func Traverse(node *Node, order int, leftFirst bool) []*LevelDirEntry {
+	if setRecursive {
+		return traverseRecur(node, 0, none, order, leftFirst)
+	} else {
+		return traverseLoop(node, order, leftFirst)
 	}
 
-	fmt.Printf(" %v ", node.data)
-	Traverse(node.links[left])
-
-	Traverse(node.links[right])
-
-	//fmt.Println("")
 }
 
-func traverseRecur(node *Node, dir int) {
-	if node == nil {
-		return
+//To put '1 more' detail to differentiate with LevelDirEntry in the slice
+type Processing struct {
+	*LevelDirEntry
+}
+
+func traverseLoop(node *Node, order int, leftFirst bool) []*LevelDirEntry {
+
+	firstGo := left
+	secondGo := right
+
+	if !leftFirst {
+		firstGo = right
+		secondGo = left
 	}
-	fmt.Printf(" %v ", node.data)
-	Traverse(node.links[left])
-	Traverse(node.links[right])
 
-	fmt.Println("")
+	nodes := []*LevelDirEntry{}
+	stack := []interface{}{}
+
+	addStack := func(parent *Node, dir int, level int) {
+		if parent.links[dir] != nil {
+			p := Processing{&LevelDirEntry{parent.links[dir], dir, level + 1}}
+			stack = append(stack, &p)
+		}
+	}
+
+	dir := none
+	level := 0
+
+	//using slice as stack.. due to append()",
+	// we need to work from the back instead of the front i.e [0]
+	// add last to process element in the front[0], pop the back or add new to the back
+	for {
+		switch order {
+		case preOrder:
+			addStack(node, secondGo, level)
+			addStack(node, firstGo, level)
+			stack = append(stack, &LevelDirEntry{node, dir, level})
+		case inOrder:
+			addStack(node, secondGo, level)
+			stack = append(stack, &LevelDirEntry{node, dir, level})
+			addStack(node, firstGo, level)
+		default: //postOrder
+			stack = append(stack, &LevelDirEntry{node, dir, level})
+			addStack(node, secondGo, level)
+			addStack(node, firstGo, level)
+		}
+
+		//2nd loop to clear Nodes into slice
+	ClearNodes:
+		for {
+			if len(stack) == 0 {
+				return nodes
+			}
+			//pop the back
+			end := len(stack) - 1
+			i := stack[end]
+			stack = stack[:end]
+
+			switch i.(type) {
+			case *Processing:
+				e := i.(*Processing).LevelDirEntry
+				level = e.level
+				node = e.Node
+				dir = e.dir
+				break ClearNodes
+			case *LevelDirEntry:
+				nodes = append(nodes, i.(*LevelDirEntry))
+			}
+		}
+	}
 }
 
-func Insert(data Comparable, root *Node) (ok bool, newNode *Node) {
+func traverseRecur(node *Node, level int, dir int, order int, leftFirst bool) []*LevelDirEntry {
+
+	firstGo := left
+	secondGo := right
+
+	if !leftFirst {
+		firstGo = right
+		secondGo = left
+	}
+
+	if node == nil {
+		return nil
+	}
+	l := LevelDirEntry{node, dir, level}
+	e := []*LevelDirEntry{&l}
+	e1 := traverseRecur(node.links[firstGo], level+1, firstGo, order, leftFirst)
+	e2 := traverseRecur(node.links[secondGo], level+1, secondGo, order, leftFirst)
+
+	switch order {
+	case preOrder:
+		return append(append(e, e1...), e2...)
+	case inOrder:
+		return append(append(e1, e...), e2...)
+	default: //postOrder
+		return append(append(e1, e2...), e...)
+	}
+}
+
+func PrintTree(node *Node) {
+
+	for _, node := range Traverse(node, inOrder, false) {
+		c := ""
+		switch node.dir {
+		case right:
+			c = "/"
+		case left:
+			c = "\\"
+		}
+		/*
+			if node == nil {
+				for i := 0; i < level; i++ {
+					fmt.Print("\t")
+				}
+				fmt.Printf("%v~\n\n", c)
+				return
+			}*/
+		for i := 0; i < node.level; i++ {
+			fmt.Print("\t")
+		}
+		fmt.Printf("%v%v\n\n", c, node.data)
+	}
+
+}
+
+func Insert(data Comparable, root *Node, atRoot bool) (ok bool, newNode *Node) {
 	if root == nil {
 		return true, &Node{data: data}
 	}
 	if setRecursive {
+		if atRoot {
+			return insertRootRecur(data, root, none)
+		}
 		return insertRecur(data, root, none)
 	} else {
 		return insertLoop(data, root)
@@ -66,12 +195,10 @@ func Insert(data Comparable, root *Node) (ok bool, newNode *Node) {
 }
 
 func insertLoop(data Comparable, parent *Node) (ok bool, newNode *Node) {
-
 	curr := parent
 	var dir int
 
 	for curr != nil {
-		//fmt.Printf("\n data is %v", curr.data)
 		switch curr.data.Compare(data) {
 		case equalTo:
 			return false, nil
@@ -83,10 +210,46 @@ func insertLoop(data Comparable, parent *Node) (ok bool, newNode *Node) {
 		parent = curr
 		curr = curr.links[dir]
 	}
-
-	parent.links[dir] = &Node{parent: parent, dir: dir, data: data}
+	parent.links[dir] = &Node{data: data}
 
 	return true, parent.links[dir]
+}
+
+func flip(dir int) int {
+	switch dir {
+	case left:
+		return right
+	case right:
+		return left
+	default:
+		return none
+	}
+}
+
+//Recurse until empty spot or return equalTo found
+func insertRootRecur(data Comparable, parent *Node, dir int) (ok bool, newNode *Node) {
+	switch parent.data.Compare(data) {
+	case equalTo:
+		return false, parent
+	case greaterThan:
+		dir = right
+	case lessThan:
+		dir = left
+	}
+	var save *Node
+
+	if parent.links[dir] == nil { //Found insertion point
+		save = &Node{data: data}
+		ok = true
+	} else {
+		ok, save = insertRootRecur(data, parent.links[dir], dir)
+	}
+	//This is simply moving the parent to be the node child
+	// and relink the "replaced" child to the parent (where the node is supposed to be link)
+	parent.links[dir] = save.links[flip(dir)] //relink node's child under parent
+	save.links[flip(dir)] = parent            // link parent as node's child
+
+	return ok, save
 }
 
 //Recurse until empty spot or return equalTo found
@@ -99,36 +262,58 @@ func insertRecur(data Comparable, parent *Node, dir int) (ok bool, newNode *Node
 	case lessThan:
 		dir = left
 	}
-
+	var save *Node
 	if parent.links[dir] == nil { //Found insertion point
-		parent.links[dir] = &Node{parent: parent, dir: dir, data: data}
-		return true, parent.links[dir]
-	}
-
-	return insertRecur(data, parent.links[dir], dir)
-}
-
-func Find(data Comparable, root *Node) (ok bool, theOne *Node) {
-	if setRecursive {
-		return findRecur(data, root)
+		save = &Node{data: data}
+		parent.links[dir] = save //can't do on the return as it will be linked to root eventually
+		ok = true
 	} else {
-		//fmt.Println("Using findLoop.")
-		return findLoop(data, root)
+		ok, save = insertRecur(data, parent.links[dir], dir)
+	}
+
+	return ok, save
+}
+
+func Find(data Comparable, root *Node) (ok bool, reversePath []*DirEntry) {
+	//if setRecursive {
+	//	return findRecur(data, root)
+	//} else {
+	return findLoop(data, root)
+	//}
+}
+
+func Reverse(orig []interface{}) (ret []interface{}) {
+	l := len(orig)
+	ret = make([]interface{}, l)
+	for i, x := range orig {
+		ret[l-i] = x
+	}
+	return
+}
+
+func reverse(nodes []*DirEntry) {
+	for x, y := 0, len(nodes)-1; x < y; x, y = x+1, y-1 {
+		nodes[x], nodes[y] = nodes[y], nodes[x]
 	}
 }
 
-func findLoop(data Comparable, parent *Node) (ok bool, theOne *Node) {
+func findLoop(data Comparable, parent *Node) (ok bool, reversePath []*DirEntry) {
+	nodes := []*DirEntry{}
 	curr := parent
+	dir := none
 	for curr != nil {
-		//fmt.Printf("\n data is %v", curr.data)
-		var dir int
+		nodes = append(nodes, &DirEntry{curr, dir})
 		switch curr.data.Compare(data) {
 		case equalTo:
-			return true, curr
+			dir = none
 		case greaterThan:
 			dir = right
 		case lessThan:
 			dir = left
+		}
+		if dir == none {
+			reverse(nodes)
+			return true, nodes
 		}
 		curr = curr.links[dir]
 	}
@@ -162,52 +347,46 @@ func GetNumChild(node *Node) int {
 }
 
 func Delete(data Comparable, root *Node) (ok bool) {
-	found, node := Find(data, root)
+
+	found, nodes := Find(data, root)
 	if !found {
 		return false
 	}
-	switch GetNumChild(node) {
+	nodePath := nodes[0]
+	var parentPath *DirEntry
+	if len(nodes) > 1 { // in case it's root
+		parentPath = nodes[1]
+	}
+	switch GetNumChild(nodePath.Node) {
 	case 0:
-		node.parent.links[node.dir] = nil
+		if parentPath == nil {
+			return false // if tree have only 1 node as root,do nothing
+		}
+		parentPath.Node.links[nodePath.dir] = nil
 		return true
 	case 1:
 		nonEmpty := left
-		if node.links[left] == nil {
+		if nodePath.Node.links[left] == nil {
 			nonEmpty = right
 		}
-		node.parent.links[node.dir] = node.links[nonEmpty]
-		node.links[nonEmpty] = nil
+		nodePath.Node.data = nodePath.Node.links[nonEmpty].data
+		if parentPath != nil {
+			parentPath.Node.links[nodePath.dir] = nodePath.Node.links[nonEmpty] //relink
+		}
 	case 2: //traverse 1 left and right all e way
-		curr := node.links[left]
+		curr := nodePath.Node.links[left]
+		var parentcurr *Node
 		for ; curr.links[right] != nil; curr = curr.links[right] {
+			parentcurr = curr
 		}
-		node.data = curr.data //swap data
-		//if last node has left link.. reconnect to parent
-		if curr.links[left] != nil {
-			curr.parent.links[right] = curr.links[left]
+		nodePath.Node.data = curr.data //move data
+		if parentcurr == nil {
+			nodePath.Node.links[left] = nil // if curr is just left of theNode
 		} else {
-			//nullifed parent link
-			curr.parent.links[left] = nil
+			parentcurr.links[right] = curr.links[left] //replace curr position
 		}
+
 	}
 
 	return true
 }
-
-/*
-func FindLoop(root *Node, data int32) bool {
-
-	for root != nil {
-		if root.data == data {
-			return true
-		} else {
-			dir := 0
-			if root.data > data {
-				dir = 1
-			}
-			root = root.link[dir]
-		}
-	}
-	return false
-}
-*/
