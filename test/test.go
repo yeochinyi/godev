@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 import "container/heap"
+import "time"
+import "strings"
 
 type Equaler interface {
 	Equal(Equaler) bool
@@ -104,9 +106,57 @@ func main123000() {
 	}
 }
 
-func main() {
+func main1111() {
 	a1 := []int{2, 3, 4}
 	//a2 := []int{1}
 	a := append([]int{1}, a1...)
 	fmt.Printf("%v", a)
+}
+
+type IceCreamMaker interface {
+	// Hello greets a customer
+	Hello()
+}
+
+type Ben struct {
+	name string
+}
+
+func (b *Ben) Hello() {
+	if b.name !=  
+	fmt.Printf("Ben says, \"Hello my name is %s\"\n", b.name)
+}
+
+type Jerry struct {
+	name string
+}
+
+func (j *Jerry) Hello() {
+	fmt.Printf("Jerry says, \"Hello my name is %s\"\n", j.name)
+}
+
+func main() {
+	var ben = &Ben{"Ben"}
+	var jerry = &Jerry{"Jerry"}
+	var maker IceCreamMaker = ben
+
+	var loop0, loop1 func()
+
+	loop0 = func() {
+		maker = ben
+		go loop1()
+	}
+
+	loop1 = func() {
+		maker = jerry
+		go loop0()
+	}
+
+	go loop0()
+
+	for {
+		time.Sleep(1000)
+		maker.Hello()
+
+	}
 }
