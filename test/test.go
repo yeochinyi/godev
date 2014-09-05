@@ -3,7 +3,9 @@ package main
 import "fmt"
 import "container/heap"
 import "time"
-import "strings"
+
+//import "strings"
+import "github.com/yeochinyi/godev/json"
 
 type Equaler interface {
 	Equal(Equaler) bool
@@ -123,7 +125,7 @@ type Ben struct {
 }
 
 func (b *Ben) Hello() {
-	if b.name !=  
+	//if b.name !=
 	fmt.Printf("Ben says, \"Hello my name is %s\"\n", b.name)
 }
 
@@ -136,6 +138,10 @@ func (j *Jerry) Hello() {
 }
 
 func main() {
+	json.Start()
+}
+
+func main1111111() {
 	var ben = &Ben{"Ben"}
 	var jerry = &Jerry{"Jerry"}
 	var maker IceCreamMaker = ben
